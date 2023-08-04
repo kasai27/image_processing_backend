@@ -20,7 +20,6 @@ def create_fragile_image(img, text):
     watermark_length = 1024
     seed = 10
     step = 20
-    s = text
     
     # 画像の色空間の変換
     img = img.astype(np.float32)
@@ -29,7 +28,7 @@ def create_fragile_image(img, text):
     # 二次元DCT
     img_dct = dct_2d(img_yuv[:,:,0])
 
-    data = str_bin_change.str_to_bin(s)
+    data = str_bin_change.str_to_bin(text)
     index_list = []
     s_t = []
 
@@ -40,7 +39,7 @@ def create_fragile_image(img, text):
     random.seed(seed)
     sampling_list = random.sample(index_list, watermark_length)
 
-    for n in range(1024):
+    for n in range(watermark_length):
         i, j = sampling_list[n]
         s_t.append(img_dct[i, j])
 

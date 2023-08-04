@@ -22,6 +22,6 @@ def bin_to_str(s_bin):
 
 if __name__ == "__main__":
     s_bin = str_to_bin("aabc bff")
-    print(s_bin)
+    # print(s_bin)
     s = bin_to_str(s_bin)
     print(s)

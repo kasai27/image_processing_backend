@@ -65,17 +65,32 @@ async def upload_image(file: UploadFile = File(...)):
 @app.post("/watermark/")
 async def process_data(file: UploadFile = File(...), text: str = Form(...)):
     contents = await file.read()
-    text = {text}
 
     nparr = np.frombuffer(contents, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
     processed_image = fragile.create_fragile_image(image, text)
-    #result_text = detection.detection(processed_image)
-    #print(result_text)
+    result_s = detection.detection(processed_image)
+    print(result_s)
+    output_path = "download_files/" + file.filename
+    cv2.imwrite(output_path, processed_image)
 
     # Base64エンコードしてフロントエンドに送信
     _, buffer = cv2.imencode('.jpg', processed_image)
     base64_image = base64.b64encode(buffer).decode('utf-8')
 
     return  {"processed_image": base64_image}
+
+# 電子透かし抽出処理
+@app.post("/detection/")
+async def upload_image(file: UploadFile = File(...)):
+    contents = await file.read()
+
+    nparr = np.frombuffer(contents, np.uint8)
+    image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    result_text = detection.detection(image)
+    result_text = result_text.rstrip("\0")
+    print("result:" + result_text)
+
+    return  {"result_text": result_text}
