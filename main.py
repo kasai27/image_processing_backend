@@ -26,10 +26,15 @@ def process_grayscale(image):
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     return gray_image
 
-# ラプラシアン処理（エッジ）
-def process_laplacian(image):
-    laplacian_image = cv2.Laplacian(image, -1)
-    return laplacian_image
+# エッジ処理
+def ege_processing(image, fileter_type):
+    if fileter_type == "Sobel":
+        ege_processed_image = cv2.Sobel(image, cv2.CV_32F, 1, 0, ksize=3)
+    elif fileter_type == "Laplacian":
+        ege_processed_image = cv2.Laplacian(image, cv2.CV_32F)
+    elif fileter_type =="Canny":
+        ege_processed_image = cv2.Canny(image, 100, 200)
+    return ege_processed_image
 
 # グレーススケール化
 @app.post("/gray/")
@@ -47,13 +52,13 @@ async def upload_image(file: UploadFile = File(...)):
     return  {"processed_image": base64_image}
 
 # エッジ処理（ラプラシアン処理）
-@app.post("/laplacian/")
-async def upload_image(file: UploadFile = File(...)):
+@app.post("/edge/")
+async def upload_image(file: UploadFile = File(...), filter_type: str = Form(...)):
     contents = await file.read()
     nparr = np.frombuffer(contents, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-    processed_image = process_laplacian(image)
+    processed_image = ege_processing(image, filter_type)
 
     # Base64エンコードしてフロントエンドに送信
     _, buffer = cv2.imencode('.jpg', processed_image)
