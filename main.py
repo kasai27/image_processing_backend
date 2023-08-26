@@ -62,6 +62,7 @@ async def upload_image(file: UploadFile = File(...)):
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
+
 # エッジ処理(API)
 @app.post("/edge/")
 async def upload_image(file: UploadFile = File(...), filter_type: str = Form(...)):
@@ -81,9 +82,7 @@ async def upload_image(file: UploadFile = File(...), filter_type: str = Form(...
         return StreamingResponse(generate(), media_type="image/jpeg")
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
-
-
-
+    
 
 # 電子透かし処理(API)
 @app.post("/watermark/")
@@ -119,3 +118,31 @@ async def upload_image(file: UploadFile = File(...)):
     print("result:" + result_text)
 
     return  {"result_text": result_text}
+
+# 顔検出処理(API)
+@app.post("/face_detection/")
+async def upload_image(file: UploadFile = File(...)):
+    try:
+        contents = await file.read()
+        nparr = np.frombuffer(contents, np.uint8)
+        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+        cascade_path = "./library/haarcascade_frontalface_alt.xml"
+        cascade = cv2.CascadeClassifier(cascade_path)
+        facerect = cascade.detectMultiScale(image)
+
+        if len(facerect) > 0:
+            for rect in facerect:
+                cv2.rectangle(image, tuple(rect[0:2]), tuple(rect[0:2]+rect[2:4]), (0, 0, 255), thickness=2)
+        else:
+            print('no face')
+
+        retval, buffer = cv2.imencode(".jpg", image)
+        image_bytes = buffer.tobytes()
+
+        def generate():
+            yield image_bytes
+
+        return StreamingResponse(generate(), media_type="image/jpeg")
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
