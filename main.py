@@ -12,7 +12,7 @@ app = FastAPI()
 
 origins = {
     "http://localhost:3000",
-    "https://image-processing-frontend.vercel.app/detection"
+    "https://image-processing-frontend.vercel.app"
 }
 
 
